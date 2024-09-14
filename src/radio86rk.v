@@ -235,7 +235,6 @@ wire [15:0] osd_command;
 wire fileloader_reset;
 reg[31:0] fileloader_addr, loader_ram_a;
 reg[7:0]  fileloader_data, loader_ram_do;
-wire romloader_wr, fileloader_wr;
 
 wire[20:0] load_a;
 wire[7:0]  load_d;

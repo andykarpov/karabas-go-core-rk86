@@ -43,9 +43,9 @@ reg[15:0] len;
 
 reg[7:0] mark;
 reg[7:0] header[0:3];
-reg[1:0]	count = 0;
+reg[1:0]	count;
 
-reg[1:0]	state = 0;
+reg[1:0]	state;
 
 reg file_load;
 
@@ -68,7 +68,7 @@ always @(posedge clk50) begin
         case(state)
 		   0: if (fileloader_wr) 
 				begin									
-					if (fileloader_data == 8'hE6 & file_mem_adr == 0) 
+					if (fileloader_data == 8'hE6 & count == 0) 
 						begin 
 							mark <= fileloader_data;
 						end
@@ -77,9 +77,8 @@ always @(posedge clk50) begin
 							count <= count + 1;
 							header[count] <= fileloader_data;
 							len <= {header[2],header[3]};
+							if (count == 3) state <= 1;
 						end
-					else
-						state <= 1;
 				end
 			1: if (fileloader_wr) 
 				begin
