@@ -41,12 +41,13 @@ reg[20:0] file_mem_adr;
 reg[15:0] start;
 reg[15:0] len;
 
+reg[7:0] mark;
 reg[7:0] header[0:3];
 reg[1:0]	count = 0;
 
 reg[1:0]	state = 0;
 
-reg file_load = 0;
+reg file_load;
 
 assign loading = loader_act | file_load;									//to switch sram A to the loader A
 assign sram_a  = loader_act ? loader_ram_a[20:0] : file_mem_adr[20:0];
@@ -67,15 +68,16 @@ always @(posedge clk50) begin
         case(state)
 		   0: if (fileloader_wr) 
 				begin									
-					if (fileloader_data[7:0] == 8'hE6 && file_mem_adr == 21'b0) 
-					begin 
-					end
+					if (fileloader_data == 8'hE6 & file_mem_adr == 0) 
+						begin 
+							mark <= fileloader_data;
+						end
 					else if (count <= 3) 
-					begin
-						header[count] <= fileloader_data;
-						len <= {header[2],header[3]};
-						count <= count + 1;
-					end
+						begin
+							count <= count + 1;
+							header[count] <= fileloader_data;
+							len <= {header[2],header[3]};
+						end
 					else
 						state <= 1;
 				end

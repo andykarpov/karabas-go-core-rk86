@@ -243,7 +243,7 @@ wire		  load_wr;
 wire 		  loading;
 
 mcu mcu(
-	.CLK(clk50),
+	.CLK(clk25),
 	.N_RESET(~areset),
 	
 	.MCU_MOSI(MCU_MOSI),
