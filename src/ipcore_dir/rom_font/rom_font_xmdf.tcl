@@ -103,11 +103,19 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/sim
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/simulation/checker.vhd
+utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
+incr fcount
+
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/simulation/data_gen.vhd
+utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
+incr fcount
+
 utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/simulation/functional/simcmds.tcl
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/simulation/functional/simulate_isim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/simulation/functional/simulate_isim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
@@ -163,7 +171,7 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/sim
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/simulation/timing/simulate_isim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path rom_font/simulation/timing/simulate_isim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 

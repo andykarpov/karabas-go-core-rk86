@@ -5,7 +5,8 @@ use IEEE.std_logic_unsigned.all;
 
 entity overlay is
 	port (
-		CLK		: in std_logic;
+		CLK : in std_logic;
+		CLK_VGA		: in std_logic;
 		RGB_I 	: in std_logic_vector(23 downto 0);
 		RGB_O 	: out std_logic_vector(23 downto 0);
 		HSYNC_I 	: in std_logic;
@@ -49,8 +50,12 @@ architecture rtl of overlay is
 	 
  	 signal osd_overlay: std_logic := '0';
 	 signal osd_popup: std_logic := '0';
-	 signal single : std_logic := '0';
 	 
+	 signal osdfont_addr : std_logic_vector(10 downto 0) := (others => '1');
+	 signal osdfont_data : std_logic_vector(7 downto 0);
+	 signal osdfont_we : std_logic_vector(0 downto 0) := "0";
+	 signal osdfont_upd, osdfont_prev_upd : std_logic := '0';
+	 	 
 	 constant paper_chars_h : natural := 32; -- count of characters in row
 	 constant paper_chars_v : natural := 26; -- count of characters in column
 	 
@@ -71,20 +76,20 @@ architecture rtl of overlay is
 	 
 	 signal flash_cnt : std_logic_vector(7 downto 0);
 	 
-	 constant h_offset : natural := 120;
-	 constant v_offset : natural := 72;	 
+	 constant h_offset : natural := 48; --120;
+	 constant v_offset : natural := 32; --72;	 
 begin
 
-	hsync_pol <= '0';
-	vsync_pol <= '0';
+	hsync_pol <= '1';
+	vsync_pol <= '1';
 	
 	hsync <= HSYNC_I;
 	vsync <= VSYNC_I;
 	
 	-- hcnt, vcnt, width, height
-	process(CLK)
+	process(CLK_VGA)
 	begin
-		if falling_edge(CLK) then
+		if falling_edge(CLK_VGA) then
 			
 				prev_hsync <= hsync;				
 				if hsync = hsync_pol and prev_hsync /= hsync then -- new line (start of hsync pulse)
@@ -105,20 +110,25 @@ begin
 	end process;
 
 	-- normalize h/v values
-	single <= '1' when width < 500 else '0';
-	hcnt <= hcnt_i(10 downto 0) - 240 when single = '1' else 
-			  '0' & hcnt_i(10 downto 1) - 100 when width < 1000 else 
+	hcnt <= hcnt_i(10 downto 0) - h_offset when width < 500 else 
+			  '0' & hcnt_i(10 downto 1) - h_offset when width < 1000 else 
 			  "00" & hcnt_i(10 downto 2) - h_offset;
+
 	vcnt <= vcnt_i(10 downto 0) - v_offset when height < 400 else 
 			  '0' & vcnt_i(10 downto 1) - v_offset when height < 800 else 
 			  "00" & vcnt_i(10 downto 2) - v_offset;
 
-	 -- 8x8 font
+	 -- 8x8 font RAM
 	 U_FONT: entity work.rom_font
     port map (
-        addra  => rom_addr,
-        clka   => CLK,
-        douta  => font_word
+        addra  => osdfont_addr,
+		  dina   => osdfont_data,
+		  wea    => osdfont_we,
+		  clka   => CLK,
+		  
+        addrb  => rom_addr,
+        clkb   => CLK_VGA,
+        doutb  => font_word
     );
 
 	 -- OSD VRAM
@@ -130,7 +140,7 @@ begin
         wea    => vram_wr,
 
         addrb  => addr_read,
-        clkb   => CLK,
+        clkb   => CLK_VGA,
         doutb  => vram_do
     );
 
@@ -140,17 +150,13 @@ begin
     char_y <= vcnt(3 downto 1) when OSD_POPUP = '1' else VCNT(2 downto 0);
 	 
 	 paper2 <= '1' when hcnt >= paper_start_h and hcnt < paper_end_h and vcnt >= paper_start_v and vcnt < paper_end_v else '0'; 
-	 paper <= '1' when (hcnt >= paper_start_h + 8 and hcnt < paper_end_h + 8 and vcnt >= paper_start_v and vcnt < paper_end_v and single = '0')
-						 or (hcnt >= paper_start_h + 17 and hcnt < paper_end_h + 17 and vcnt >= paper_start_v and vcnt < paper_end_v and single = '1') else '0';
-	 
-
-							  
+	 paper <= '1' when hcnt >= paper_start_h + 8 and hcnt < paper_end_h + 8 and vcnt >= paper_start_v and vcnt < paper_end_v else '0'; --        (8 px)
     video_on <= '1' when (OSD_OVERLAY = '1' or OSD_POPUP = '1') else '0';
 	 
 	 -- mem read character / attribute
-	 process (CLK, vram_do)
+	 process (CLK_VGA, vram_do)
 	 begin
-		if (rising_edge(CLK)) then 
+		if (rising_edge(CLK_VGA)) then 
 				if (OSD_POPUP = '1') then 
 					case (hcnt(3 downto 0)) is
 						when "1110" =>
@@ -180,18 +186,18 @@ begin
 	 end process;
 	 
 	 -- pixel load from font
-	 process (CLK)
+	 process (CLK_VGA)
 	 begin
-		if rising_edge(CLK) then
+		if rising_edge(CLK_VGA) then
 			if char_x = "111" then 
 				rom_addr <= vram_do(15 downto 8) & char_y;
 			end if;
 		end if;
 	end process;	
 	
-	process (CLK) 
+	process (CLK_VGA) 
 	begin
-		if falling_edge(CLK) then
+		if falling_edge(CLK_VGA) then
 			load_pixel <= '0';
 			if ((OSD_POPUP = '0' and char_x = "111") or (OSD_POPUP = '1' and hcnt(3 downto 0) = "1111")) and load_pixel = '0' then 
 				load_pixel <= '1';
@@ -202,10 +208,9 @@ begin
 	-- pixel doubler
 	U_PIX : entity work.pix_doubler
 	port map(
-		CLK => CLK,
+		CLK => CLK_VGA,
 		LOAD => load_pixel,
 		D => font_word,
-		SINGL => single,
 		QUAD => OSD_POPUP,
 		DOUT => pixel_reg
 	);
@@ -249,9 +254,29 @@ begin
 					  when X"11" => vram_wr <= "0"; addr_write(9 downto 5) <= osd_command(4 downto 0); -- y: 0...32
 					  when X"12"  => vram_wr <= "0"; char_buf <= osd_command(7 downto 0); -- char
 					  when X"13"  => vram_wr <= "1"; vram_di <= char_buf & osd_command(7 downto 0); -- attrs
+					  when x"20" => 
+								-- reset font address
+								if (OSD_COMMAND(0) = '1') then 
+									osdfont_addr <= (others => '1');
+									osdfont_upd <= '0';
+									osdfont_prev_upd <= '0';
+								end if;
+						  when x"21" => 
+								-- new font data
+								osdfont_addr <= osdfont_addr + 1;
+								osdfont_data <= OSD_COMMAND(7 downto 0);
+								osdfont_upd <= not osdfont_upd;
 					  when others => vram_wr <= "0";
 					end case;
 				 end if;
+				 
+				-- wr signal / osd font loader
+				osdfont_we <= "0";
+				if (osdfont_prev_upd /= osdfont_upd) then 
+					osdfont_prev_upd <= osdfont_upd;
+					osdfont_we <= "1";
+				end if;				 
+				 
 		  end if;
 	end process;
 

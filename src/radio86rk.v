@@ -479,7 +479,8 @@ end
 //--------- OSD --------------
 
 overlay overlay(
-	.CLK(clk25),
+	.CLK(clk50),
+	.CLK_VGA(clk25),
 	.RGB_I({video_r[7:0], video_g[7:0], video_b[7:0]}),
 	.RGB_O({VGA_R, VGA_G, VGA_B}),
 	.HSYNC_I(VGA_HS),
