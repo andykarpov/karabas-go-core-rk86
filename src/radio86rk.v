@@ -232,15 +232,15 @@ ODDR2 ODDR2_inst1 (  //clock for midi to avoid random noises
 wire [15:0] softsw_command;
 wire [15:0] osd_command;
 
-/*wire romloader_act, fileloader_reset;
-wire [31:0] romloader_addr, fileloader_addr;
-wire [7:0] romloader_data, fileloader_data;
-wire romloader_wr, fileloader_wr;*/
+wire fileloader_reset;
+reg[31:0] fileloader_addr, loader_ram_a;
+reg[7:0]  fileloader_data, loader_ram_do;
+wire romloader_wr, fileloader_wr;
 
-/*wire[20:0] load_a;
+wire[20:0] load_a;
 wire[7:0]  load_d;
 wire		  load_wr;
-wire 		  loading;*/
+wire 		  loading;
 
 mcu mcu(
 	.CLK(clk50),

@@ -30,9 +30,9 @@ module loader(
 	input[7:0] 		fileloader_data,
 	input 			fileloader_wr,
 	
-	output 			sram_a,
+	output[20:0]	sram_a,
 	output 			sram_wr,
-	output 		 	sram_d,
+	output[7:0] 	sram_d,
 	output   		loading
     );
 
@@ -88,7 +88,7 @@ always @(posedge clk50) begin
 						file_mem_adr <= file_mem_adr + 1;
 					end
 				end
-			endcase
+		endcase
 		end
 	end
 endmodule

@@ -55,9 +55,9 @@
 // "Output    Output      Phase     Duty      Pk-to-Pk        Phase"
 // "Clock    Freq (MHz) (degrees) Cycle (%) Jitter (ps)  Error (ps)"
 //----------------------------------------------------------------------------
-// CLK_OUT1____48.750______0.000______50.0______249.353____257.452
-// CLK_OUT2____25.000______0.000______50.0______306.503____257.452
-// CLK_OUT3____12.037______0.000______50.0______356.945____257.452
+// CLK_OUT1____50.000______0.000______50.0______200.000____150.000
+// CLK_OUT2____25.000______0.000______50.0______300.000____150.000
+// CLK_OUT3____12.000______0.000______50.0_____1866.667____150.000
 //
 //----------------------------------------------------------------------------
 // "Input Clock   Freq (MHz)    Input Jitter (UI)"
@@ -66,7 +66,7 @@
 
 `timescale 1ps/1ps
 
-(* CORE_GENERATION_INFO = "pll,clk_wiz_v3_6,{component_name=pll,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=PLL_BASE,num_out_clk=3,clkin1_period=20.000,clkin2_period=20.000,use_power_down=false,use_reset=false,use_locked=true,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=AUTO,manual_override=false}" *)
+(* CORE_GENERATION_INFO = "pll,clk_wiz_v3_6,{component_name=pll,use_phase_alignment=true,use_min_o_jitter=false,use_max_i_jitter=false,use_dyn_phase_shift=false,use_inclk_switchover=false,use_dyn_reconfig=false,feedback_source=FDBK_AUTO,primtype_sel=DCM_SP,num_out_clk=3,clkin1_period=20.0,clkin2_period=20.0,use_power_down=false,use_reset=false,use_locked=true,use_inclk_stopped=false,use_status=false,use_freeze=false,use_clk_valid=false,feedback_type=SINGLE,clock_mgr_type=AUTO,manual_override=false}" *)
 module pll
  (// Clock in ports
   input         CLK_IN1,
@@ -87,70 +87,73 @@ module pll
 
   // Clocking primitive
   //------------------------------------
-  // Instantiation of the PLL primitive
+
+  // Instantiation of the DCM primitive
   //    * Unused inputs are tied off
   //    * Unused outputs are labeled unused
-  wire [15:0] do_unused;
-  wire        drdy_unused;
-  wire        clkfbout;
-  wire        clkfbout_buf;
-  wire        clkout3_unused;
-  wire        clkout4_unused;
-  wire        clkout5_unused;
+  wire        psdone_unused;
+  wire        locked_int;
+  wire [7:0]  status_int;
+  wire clkfb;
+  wire clk0;
+  wire clkfx;
+  wire clkdv;
 
-  PLL_BASE
-  #(.BANDWIDTH              ("OPTIMIZED"),
-    .CLK_FEEDBACK           ("CLKFBOUT"),
-    .COMPENSATION           ("SYSTEM_SYNCHRONOUS"),
-    .DIVCLK_DIVIDE          (2),
-    .CLKFBOUT_MULT          (39),
-    .CLKFBOUT_PHASE         (0.000),
-    .CLKOUT0_DIVIDE         (20),
-    .CLKOUT0_PHASE          (0.000),
-    .CLKOUT0_DUTY_CYCLE     (0.500),
-    .CLKOUT1_DIVIDE         (39),
-    .CLKOUT1_PHASE          (0.000),
-    .CLKOUT1_DUTY_CYCLE     (0.500),
-    .CLKOUT2_DIVIDE         (81),
-    .CLKOUT2_PHASE          (0.000),
-    .CLKOUT2_DUTY_CYCLE     (0.500),
-    .CLKIN_PERIOD           (20.000),
-    .REF_JITTER             (0.010))
-  pll_base_inst
+  DCM_SP
+  #(.CLKDV_DIVIDE          (2.000),
+    .CLKFX_DIVIDE          (25),
+    .CLKFX_MULTIPLY        (6),
+    .CLKIN_DIVIDE_BY_2     ("FALSE"),
+    .CLKIN_PERIOD          (20.0),
+    .CLKOUT_PHASE_SHIFT    ("NONE"),
+    .CLK_FEEDBACK          ("1X"),
+    .DESKEW_ADJUST         ("SYSTEM_SYNCHRONOUS"),
+    .PHASE_SHIFT           (0),
+    .STARTUP_WAIT          ("FALSE"))
+  dcm_sp_inst
+    // Input clock
+   (.CLKIN                 (clkin1),
+    .CLKFB                 (clkfb),
     // Output clocks
-   (.CLKFBOUT              (clkfbout),
-    .CLKOUT0               (clkout0),
-    .CLKOUT1               (clkout1),
-    .CLKOUT2               (clkout2),
-    .CLKOUT3               (clkout3_unused),
-    .CLKOUT4               (clkout4_unused),
-    .CLKOUT5               (clkout5_unused),
-    // Status and control signals
-    .LOCKED                (LOCKED),
+    .CLK0                  (clk0),
+    .CLK90                 (),
+    .CLK180                (),
+    .CLK270                (),
+    .CLK2X                 (),
+    .CLK2X180              (),
+    .CLKFX                 (clkfx),
+    .CLKFX180              (),
+    .CLKDV                 (clkdv),
+    // Ports for dynamic phase shift
+    .PSCLK                 (1'b0),
+    .PSEN                  (1'b0),
+    .PSINCDEC              (1'b0),
+    .PSDONE                (),
+    // Other control and status signals
+    .LOCKED                (locked_int),
+    .STATUS                (status_int),
     .RST                   (1'b0),
-     // Input clock control
-    .CLKFBIN               (clkfbout_buf),
-    .CLKIN                 (clkin1));
+    // Unused pin- tie low
+    .DSSEN                 (1'b0));
 
+    assign LOCKED = locked_int;
 
   // Output buffering
   //-----------------------------------
-  BUFG clkf_buf
-   (.O (clkfbout_buf),
-    .I (clkfbout));
+  assign clkfb = CLK_OUT1;
 
   BUFG clkout1_buf
    (.O   (CLK_OUT1),
-    .I   (clkout0));
+    .I   (clk0));
 
 
   BUFG clkout2_buf
    (.O   (CLK_OUT2),
-    .I   (clkout1));
+    .I   (clkdv));
 
   BUFG clkout3_buf
    (.O   (CLK_OUT3),
-    .I   (clkout2));
+    .I   (clkfx));
 
 
 
