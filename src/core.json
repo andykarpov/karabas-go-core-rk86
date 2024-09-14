@@ -1,0 +1,21 @@
+{
+    "id": "rk86",
+    "name": "Radio86rk",
+    "build": "24090100",
+    "bitstream": "radio86rk.bin",
+    "visible": true,
+    "type": "osd",
+    "order": 8,
+    "eeprom_bank": 6,
+    "roms": [
+        {"filename": "roms/BIOSSD.BIN", "address": 65536},
+		  {"filename": "roms/BIOS.BIN", "address": 69632}
+    ],
+    "osd": [
+        {"type": "S", "bits": 1, "name": "Text color", "options": ["White","Green"], "default": 0, "hotkey": "Menu+V"},
+        {"type": "S", "bits": 1, "name": "Sound", "options": ["off","on"], "default": 1, "hotkey": "Menu+M"},
+		  {"type": "S", "bits": 1, "name": "Select ROM", "options": ["BIOSSD","BIOS"], "default": 0, "hotkey": "Menu+B"},
+        {"type": "T", "bits": 1, "name": "Reset", "options": null, "default": 0, "hotkey": "Ctrl+Alt+Del"},
+        {"type": "T", "bits": 1, "name": "Global Reset", "options": null, "default": 0, "hotkey": "Ctrl+Alt+Bkspace"}
+    ]
+}
