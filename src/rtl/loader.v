@@ -20,6 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module loader(
+	input				reset,
 	input  			clk50,
 	input 			loader_act,				
 	input[31:0] 	loader_ram_a,
@@ -55,6 +56,9 @@ assign sram_d  = loader_act ? loader_ram_do: fileloader_data;
 assign sram_wr = loader_act ? loader_ram_wr : fileloader_wr;
 
 always @(posedge clk50 or posedge fileloader_reset) begin
+	if (reset)
+		file_load <= 0;
+	else
 	if (fileloader_reset) 
 		begin
 			file_mem_adr <= 0;
@@ -72,11 +76,11 @@ always @(posedge clk50 or posedge fileloader_reset) begin
 						begin 
 							mark <= fileloader_data;
 						end
-					else if (count <= 3) 
+					else 
 						begin
-							count <= count + 1;
 							header[count] <= fileloader_data;
 							len <= {header[2],header[3]};
+							count <= count + 1;
 							if (count == 3) state <= 1;
 						end
 				end

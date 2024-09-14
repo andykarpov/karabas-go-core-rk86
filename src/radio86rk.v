@@ -351,7 +351,7 @@ end
 
 
 //--------- LOADRER -----------------
-loader loader(.clk50(clk50),.loader_act(loader_act),.loader_ram_a(loader_ram_a),
+loader loader(.reset(cpurst),.clk50(clk50),.loader_act(loader_act),.loader_ram_a(loader_ram_a),
 				  .loader_ram_do(loader_ram_do),.loader_ram_wr(loader_ram_wr),
 				  .fileloader_reset(fileloader_reset),.fileloader_addr(fileloader_addr),
 				  .fileloader_data(fileloader_data),.fileloader_wr(fileloader_wr),
