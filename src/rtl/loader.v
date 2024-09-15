@@ -39,7 +39,8 @@ module loader(
 
 reg[20:0] file_mem_adr;
 
-reg[15:0] start;
+reg[15:0] startf;
+reg[15:0] endf;
 reg[15:0] len;
 
 reg[7:0] mark;
@@ -79,14 +80,20 @@ always @(posedge clk50 or posedge fileloader_reset) begin
 					else 
 						begin
 							header[count] <= fileloader_data;
-							len <= {header[2],header[3]};
+							startf <= {header[0],header[1]};
+							endf <= {header[2],header[3]};
 							count <= count + 1;
-							if (count == 3) state <= 1;
+							if (count == 3) 
+								begin
+									file_mem_adr <= file_mem_adr + startf;
+									len <= endf-startf+1;
+									state <= 1;
+								end
 						end
 				end
 			1: if (fileloader_wr) 
 				begin
-					if (len != 0) begin
+					if (endf != 0) begin
 						file_mem_adr <= file_mem_adr + 1;
 						len <= len - 1;
 					end
