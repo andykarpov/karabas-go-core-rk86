@@ -316,11 +316,10 @@ soft_switches soft_switches(
 //--------- RESET --------------
 reg[3:0] reset_cnt;
 reg reset_n;
-wire reset = ~reset_n | loading;
+wire reset = (~reset_n) || (loading);
 
 always @(posedge clk50) begin
-// if (KEY[0] && reset_cnt==4'd14)
-   if (!cpurst && reset_cnt==4'd14)
+   if (!(cpurst) && reset_cnt==4'd14)
       reset_n <= 1'b1;
    else begin
       reset_n <= 1'b0;
@@ -342,7 +341,7 @@ assign MRD_N[0] = loading ? 1'b1:(vid_rd ? 1'b0 : (~cpu_rd));
 //--------- BIOS SELECT --------------
 reg[20:0] rom_a;
 
-always @(*) begin
+always @(posedge clk50) begin
 	if (rom_sel==2'b00)
 		rom_a <= {9'b0000100,rom_sel,addrbus[11]|startup,addrbus[10:0]};
 	else
@@ -371,7 +370,7 @@ reg[7:0] cpu_i;
 
 reg rom;
 
-always @(*)
+always @(posedge clk50)
    casex (addrbus[15:13])
       3'b0xx: cpu_i = mem_o;
       3'b100: cpu_i = ppa1_o;
@@ -380,7 +379,7 @@ always @(*)
       3'b111: cpu_i = mem_o;
    endcase
 	
-always @(*)
+always @(posedge clk50)
    casex (addrbus[15:13])
       3'b0xx:  rom = startup ? 1'b1: 1'b0;
       3'b111:  rom = 1'b1;

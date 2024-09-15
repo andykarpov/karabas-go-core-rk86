@@ -56,7 +56,7 @@ assign sram_a  = loader_act ? loader_ram_a[20:0] : file_mem_adr[20:0];
 assign sram_d  = loader_act ? loader_ram_do: fileloader_data;
 assign sram_wr = loader_act ? loader_ram_wr : fileloader_wr;
 
-always @(posedge clk50 or posedge fileloader_reset) begin
+always @(posedge clk50 or posedge fileloader_reset or posedge reset) begin
 	if (reset)
 		file_load <= 0;
 	else
@@ -93,7 +93,7 @@ always @(posedge clk50 or posedge fileloader_reset) begin
 				end
 			1: if (fileloader_wr) 
 				begin
-					if (endf != 0) begin
+					if (len != 0) begin
 						file_mem_adr <= file_mem_adr + 1;
 						len <= len - 1;
 					end
