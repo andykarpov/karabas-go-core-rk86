@@ -53,12 +53,13 @@ reg file_load;
 
 reg ena_wr;
 
-assign loading = loader_act | file_load;									//to switch sram A to the loader A
-assign sram_a  = loader_act ? loader_ram_a[20:0] : file_mem_adr[20:0];
-assign sram_d  = loader_act ? loader_ram_do: fileloader_data;
-assign sram_wr = loader_act ? loader_ram_wr : (fileloader_wr && ena_wr);
+assign loading = loader_act | file_load | clear_wr;									//to switch sram A to the loader A
+assign sram_a  = loader_act ? loader_ram_a[20:0] : clear_wr ? clear_adr[20:0] : file_mem_adr[20:0];
+assign sram_d  = loader_act ? loader_ram_do      : clear_wr ? 8'b0            : fileloader_data;
+assign sram_wr = loader_act ? loader_ram_wr      : clear_wr ? 1'b1            : (fileloader_wr && ena_wr);
 
-always @(posedge fileloader_wr or posedge fileloader_reset) begin
+always @(posedge fileloader_wr or posedge fileloader_reset or posedge reset) begin
+	
 	if (fileloader_reset) begin
 			file_mem_adr = 0;
 			state = 0;
@@ -67,7 +68,9 @@ always @(posedge fileloader_wr or posedge fileloader_reset) begin
 			state = 0;
 			ena_wr = 0;
 		end 
-	else begin
+	else if (reset) file_load = 0;
+	else
+		begin
 		case(state)
 		0: if (fileloader_data != 8'hE6)
 			begin
@@ -92,9 +95,30 @@ always @(posedge fileloader_wr or posedge fileloader_reset) begin
 				if (count != 0) file_mem_adr = file_mem_adr + 1;
 				ena_wr = 1;
 				count = count + 1;
-				if (count == len) file_load = 0;
+				if (count == len) begin
+					state = 5;
+					file_load = 0;
+					clear_end = (startf == 0) ? startf : startf -1;
+				end
 			end
 		endcase
 	end	 
+end
+
+reg[15:0] clear_end;
+reg clear_wr = 0;
+reg[20:0] clear_adr;
+
+always @(posedge clk50) begin
+	if (state == 5) begin
+		if (clear_adr[15:0] < clear_end)	begin
+			clear_adr = clear_adr + 1;
+			clear_wr = 1;
+		end
+		else clear_wr = 0;
+	end else begin
+		clear_wr = 0;
+		clear_adr = 0;
+	end
 end
 endmodule
