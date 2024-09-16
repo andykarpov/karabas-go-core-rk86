@@ -44,62 +44,57 @@ reg[15:0] endf;
 reg[15:0] len;
 
 reg[7:0] mark;
-reg[7:0] header[0:3];
-reg[1:0]	count;
+reg[7:0] header[0:7];
+reg[15:0]count;
 
-reg[1:0]	state;
+reg[2:0]	state;
 
 reg file_load;
+
+reg ena_wr;
 
 assign loading = loader_act | file_load;									//to switch sram A to the loader A
 assign sram_a  = loader_act ? loader_ram_a[20:0] : file_mem_adr[20:0];
 assign sram_d  = loader_act ? loader_ram_do: fileloader_data;
-assign sram_wr = loader_act ? loader_ram_wr : fileloader_wr;
+assign sram_wr = loader_act ? loader_ram_wr : (fileloader_wr && ena_wr);
 
-always @(posedge clk50 or posedge fileloader_reset or posedge reset) begin
-	if (reset)
-		file_load <= 0;
-	else
-	if (fileloader_reset) 
-		begin
-			file_mem_adr <= 0;
-			state <= 0;
-			file_load <= 1;
-			count <= 0;
-			state <= 0;
+always @(posedge fileloader_wr or posedge fileloader_reset) begin
+	if (fileloader_reset) begin
+			file_mem_adr = 0;
+			state = 0;
+			file_load = 1;
+			count = 0;
+			state = 0;
+			ena_wr = 0;
 		end 
-	else 
-		begin
-        case(state)
-		   0: if (fileloader_wr) 
-				begin									
-					if (fileloader_data == 8'hE6 & count == 0) 
-						begin 
-							mark <= fileloader_data;
-						end
-					else 
-						begin
-							header[count] <= fileloader_data;
-							startf <= {header[0],header[1]};
-							endf <= {header[2],header[3]};
-							count <= count + 1;
-							if (count == 3) 
-								begin
-									file_mem_adr <= file_mem_adr + startf;
-									len <= endf-startf+1;
-									state <= 1;
-								end
-						end
-				end
-			1: if (fileloader_wr) 
-				begin
-					if (len != 0) begin
-						file_mem_adr <= file_mem_adr + 1;
-						len <= len - 1;
-					end
-					else	file_load <= 0;
-				end
-		  endcase
-		end
-	end
+	else begin
+		case(state)
+		0: if (fileloader_data != 8'hE6)
+			begin
+				startf[15:8] = fileloader_data;
+				state = 1;
+			end
+		1: begin
+				startf[7:0] = fileloader_data;
+				state = 2;
+			end
+		2: begin
+				endf[15:8] = fileloader_data;
+				state = 3;
+			end
+		3: begin
+				endf[7:0] = fileloader_data;
+				len <= endf - startf + 1;
+				file_mem_adr = startf;
+				state = 4;
+			end
+		4: begin
+				if (count != 0) file_mem_adr = file_mem_adr + 1;
+				ena_wr = 1;
+				count = count + 1;
+				if (count == len) file_load = 0;
+			end
+		endcase
+	end	 
+end
 endmodule
