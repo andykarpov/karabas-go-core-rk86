@@ -53,13 +53,13 @@ reg file_load;
 
 reg ena_wr;
 
+
 assign loading = loader_act | file_load | clear_wr;									//to switch sram A to the loader A
 assign sram_a  = loader_act ? loader_ram_a[20:0] : clear_wr ? clear_adr[20:0] : file_mem_adr[20:0];
 assign sram_d  = loader_act ? loader_ram_do      : clear_wr ? 8'b0            : fileloader_data;
 assign sram_wr = loader_act ? loader_ram_wr      : clear_wr ? 1'b1            : (fileloader_wr && ena_wr);
 
-always @(posedge fileloader_wr or posedge fileloader_reset or posedge reset) begin
-	
+always @(posedge fileloader_wr or posedge fileloader_reset) begin
 	if (fileloader_reset) begin
 			file_mem_adr = 0;
 			state = 0;
@@ -68,7 +68,6 @@ always @(posedge fileloader_wr or posedge fileloader_reset or posedge reset) beg
 			state = 0;
 			ena_wr = 0;
 		end 
-	else if (reset) file_load = 0;
 	else
 		begin
 		case(state)
