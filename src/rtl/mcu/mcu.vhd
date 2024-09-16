@@ -170,7 +170,7 @@ architecture rtl of mcu is
 	--state machine for queue writes
 	type qmachine IS(idle, rtc_wr_req, rtc_wr_ack);
 	signal qstate : qmachine := idle;
-		 
+	
 begin
 	
 	--------------------------------------------------------------------------
@@ -374,10 +374,11 @@ begin
 	process (CLK, ROMLOAD_ADDR, prev_romload_addr, ROMLOADER_ACTIVE)
 	begin
 		if rising_edge(CLK) then 
-			ROMLOAD_WR <= '0';
 			if (prev_romload_addr /= ROMLOAD_ADDR and ROMLOADER_ACTIVE = '1') then 
 				ROMLOAD_WR <= '1';
 				prev_romload_addr <= ROMLOAD_ADDR;
+			else
+				ROMLOAD_WR <= '0';
 			end if;
 		end if;
 	end process;
@@ -386,10 +387,11 @@ begin
 	process (CLK)
 	begin
 		if rising_edge(CLK) then 
-			FILELOAD_WR <= '0';
 			if (prev_fileload_addr /= FILELOAD_ADDR) then 
 				FILELOAD_WR <= '1';
 				prev_fileload_addr <= FILELOAD_ADDR;
+			else
+				FILELOAD_WR <= '0';
 			end if;
 		end if;
 	end process;

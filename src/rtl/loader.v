@@ -63,7 +63,7 @@ always @(posedge fileloader_wr or posedge fileloader_reset) begin
 	if (fileloader_reset) begin
 			file_mem_adr = 0;
 			state = 0;
-			file_load = 1;
+			file_load <= 1;
 			count = 0;
 			state = 0;
 			ena_wr = 0;
@@ -77,8 +77,10 @@ always @(posedge fileloader_wr or posedge fileloader_reset) begin
 				state = 1;
 			end
 		1: begin
-				startf[7:0] = fileloader_data;
-				state = 2;
+				begin
+					startf[7:0] = fileloader_data;
+					state = 2;
+				end
 			end
 		2: begin
 				endf[15:8] = fileloader_data;
@@ -96,7 +98,7 @@ always @(posedge fileloader_wr or posedge fileloader_reset) begin
 				count = count + 1;
 				if (count == len) begin
 					state = 5;
-					file_load = 0;
+					file_load <= 0;
 					clear_end = (startf == 0) ? startf : startf -1;
 				end
 			end
@@ -107,17 +109,31 @@ end
 reg[15:0] clear_end;
 reg clear_wr = 0;
 reg[20:0] clear_adr;
+reg[2:0] cstate;
 
 always @(posedge clk50) begin
 	if (state == 5) begin
-		if (clear_adr[15:0] < clear_end)	begin
-			clear_adr = clear_adr + 1;
-			clear_wr = 1;
-		end
-		else clear_wr = 0;
+		case(cstate)
+		0:	begin
+				if (clear_adr[15:0] < clear_end) 
+					cstate = 1;
+				else 
+					cstate = 3;
+			end
+		1: begin 
+				clear_wr = 1; 
+				cstate = 2; 
+			end
+		2: begin	
+				clear_adr = clear_adr + 1;
+				cstate = 0;
+			end
+		3: 	clear_wr = 0;
+		endcase
 	end else begin
-		clear_wr = 0;
 		clear_adr = 0;
+		cstate	= 0;
+		clear_wr = 0;
 	end
 end
 endmodule
