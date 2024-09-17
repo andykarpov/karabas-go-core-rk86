@@ -11,6 +11,7 @@ import argparse
 import sys
 import os
 from types import SimpleNamespace
+from datetime import datetime
 
 msg = "Karabas Go binary core maker v1.0"
 parser = argparse.ArgumentParser(description = msg)
@@ -45,11 +46,20 @@ for rom in d.roms:
 
 o = open(outfile, "wb")
 
+current_time = datetime.now()
+
+year = current_time.strftime("%y") 
+month = current_time.strftime("%m") 
+day = current_time.strftime("%d") 
+hour = current_time.strftime("%H")
+
+
+
 # header
 o.write("kgo1".encode("ascii")) # signature
 o.write(d.id.ljust(32)[:32].encode("ascii")) # core id
 o.write(d.name.ljust(32)[:32].encode("ascii")) # core name
-o.write(d.build.ljust(8)[:8].encode("ascii")) # core build
+o.write((year + month + day + hour).encode("ascii")) # core build
 o.write(b'\x01' if d.visible else b'\x00') # visible (in the list of cores in boot mode)
 o.write(d.order.to_bytes(1, 'big')) # order number 0-255
 # core type
