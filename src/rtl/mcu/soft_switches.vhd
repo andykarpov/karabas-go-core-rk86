@@ -37,7 +37,8 @@ entity soft_switches is
 	SPEED : 	out std_logic;
 	SND : out std_logic;
 	BIP : 	out std_logic;
-	ROM_SEL : out std_logic_vector(1 downto 0)
+	ROM_SEL : out std_logic_vector(1 downto 0);
+	AUTORUN : 	out std_logic
 	);
 end soft_switches;
 
@@ -54,7 +55,8 @@ begin
 				when x"00" => VMODE <= SOFTSW_COMMAND(0);
 				when x"01" => SOUND <= SOFTSW_COMMAND(0);
 				when x"02" => ROM_SEL <= SOFTSW_COMMAND(1 downto 0);
-				when x"03" => RESET <= SOFTSW_COMMAND(0);
+				when x"03" => AUTORUN <= SOFTSW_COMMAND(0);
+				when x"04" => RESET <= SOFTSW_COMMAND(0);
 				when others => null;
 			end case;
 		end if;

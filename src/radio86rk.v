@@ -22,6 +22,7 @@
 // https://github.com/andykarpov/rk86-zxuno '2018
 //
 // Ported to "Karabas GO" by Oleh Chastukhin
+// https://github.com/Caasper911/karabas-go-core-rk86 '2024
 
 module radio86rk(
    //---------------------------
@@ -280,12 +281,17 @@ mcu mcu(
 wire[7:0] kbd_o;
 wire[2:0] kbd_shift;
 
+wire[7:0] symbol;
+wire macros_act;
+
+wire loaded_done;
+
 hid_parser hid_parser(
 	.CLK(clk50),
 	.RESET(areset),
 
 	.KB_STATUS(hid_kb_status),
-	.KB_DAT0(hid_kb_dat0),
+	.KB_DAT0((macros_act & loaded_done)? symbol : hid_kb_dat0),
 	.KB_DAT1(hid_kb_dat1),
 	.KB_DAT2(hid_kb_dat2),
 	.KB_DAT3(hid_kb_dat3),
@@ -305,6 +311,14 @@ hid_parser hid_parser(
 	.SHIFTS(kbd_shift)
 );
 
+//---------- Macros -------------------
+macros macros (.clk50(clk50),
+					.loading(loading),
+					.sym(symbol),
+					.macros_act(macros_act),
+					.enable(enable_autorun)
+);
+
 //---------- Soft switches ------------
 
 soft_switches soft_switches(
@@ -314,7 +328,8 @@ soft_switches soft_switches(
 	.VMODE(videomode),
 	.SOUND(sound),
 	.RESET(cpurst),
-	.ROM_SEL(rom_sel)
+	.ROM_SEL(rom_sel),
+	.AUTORUN(enable_autorun)
 );
 
 //--------- RESET --------------
@@ -352,13 +367,12 @@ always @(*) begin
 		rom_a <= {9'b0000100,rom_sel,1'b0,addrbus[10:0]};
 end
 
-
-//--------- LOADRER -----------------
+//--------- LOADER -----------------
 loader loader(.reset(cpurst),.clk50(clk50),.loader_act(loader_act),.loader_ram_a(loader_ram_a),
 				  .loader_ram_do(loader_ram_do),.loader_ram_wr(loader_ram_wr),
 				  .fileloader_reset(fileloader_reset),.fileloader_addr(fileloader_addr),
 				  .fileloader_data(fileloader_data),.fileloader_wr(fileloader_wr),
-				  .sram_a(load_a),.sram_wr(load_wr),.sram_d(load_d),.loading(loading)
+				  .sram_a(load_a),.sram_wr(load_wr),.sram_d(load_d),.loading(loading),.done(loaded_done)
 				  );
 				  
 //--------- CPU ---------------------
