@@ -37,103 +37,106 @@ module loader(
 	output   		loading
     );
 
-reg[20:0] file_mem_adr;
-
 reg[15:0] startf;
 reg[15:0] endf;
 reg[15:0] len;
 
-reg[7:0] mark;
-reg[7:0] header[0:7];
-reg[15:0]count;
+reg[15:0] count;
 
-reg[2:0]	state;
+reg[2:0]	hstate;
+reg[2:0]	fstate;
 
 reg file_load;
 
 reg ena_wr;
 
+reg[20:0] adr;
+reg[20:0] mem_adr;
 
-assign loading = loader_act | file_load | clear_wr;									//to switch sram A to the loader A
-assign sram_a  = loader_act ? loader_ram_a[20:0] : clear_wr ? clear_adr[20:0] : file_mem_adr[20:0];
-assign sram_d  = loader_act ? loader_ram_do      : clear_wr ? 8'b0            : fileloader_data;
-assign sram_wr = loader_act ? loader_ram_wr      : clear_wr ? 1'b1            : (fileloader_wr && ena_wr);
+reg[7:0]  data;
+reg[7:0]  fmem_data;
 
-always @(posedge fileloader_wr or posedge fileloader_reset) begin
-	if (fileloader_reset) begin
-			file_mem_adr = 0;
-			state = 0;
-			file_load <= 1;
-			count = 0;
-			state = 0;
-			ena_wr = 0;
-		end 
-	else
-		begin
-		case(state)
-		0: if (fileloader_data != 8'hE6)
-			begin
-				startf[15:8] = fileloader_data;
-				state = 1;
-			end
-		1: begin
-				begin
-					startf[7:0] = fileloader_data;
-					state = 2;
+assign loading = loader_act | file_load;									//to switch sram A to the loader A
+assign sram_a  = loader_act ? loader_ram_a[20:0] : adr[20:0];
+assign sram_d  = loader_act ? loader_ram_do      : data;
+assign sram_wr = loader_act ? loader_ram_wr      : ena_wr;
+
+reg data_valid = 0;
+
+always @(posedge clk50 or posedge fileloader_wr) begin
+	//get byte
+	if (fileloader_wr) begin
+		fmem_data = fileloader_data;
+		data_valid = 1;
+	end 
+	else begin
+		if (reset) file_load = 0;
+		else begin
+			//get file loading start
+			if (fileloader_reset) begin 
+				file_load = 1;
+				hstate = 0;
+				fstate = 0;
+				data_valid = 0;
+				mem_adr = 0;
+				adr = 0;
+				ena_wr = 0;
+				count = 0;
+				data = 0;
+			end 
+			else begin
+				// load file header
+				if (data_valid) begin
+					case(hstate)
+					0: begin
+							if (fileloader_data != 8'hE6) begin
+								startf[15:8] = fmem_data;
+								data_valid = 0;
+								hstate = 1;
+							end
+							else data_valid = 0;
+						end
+					1: begin
+							startf[7:0] = fmem_data;
+							data_valid = 0;
+							hstate = 2;
+						end
+					2: begin
+							endf[15:8] = fmem_data;
+							data_valid = 0;
+							hstate = 3;
+						end
+					3: begin
+							endf[7:0] = fmem_data;
+							data_valid = 0;
+							mem_adr = startf;
+							hstate = 4;
+						end
+					endcase
 				end
+				//----------------------
+				//load file data
+				if (data_valid && (hstate == 4)) begin
+					len = endf - startf + 1;
+					case(fstate)
+						0: begin adr = mem_adr; data = fmem_data; fstate = 1; end
+						1: begin ena_wr = 1; mem_adr = mem_adr + 1; count = count + 1; fstate = 2; end
+						2: begin ena_wr = 0;	data_valid = 0; fstate = 0;	end
+						
+						// clear memory up to file loading address
+						3: begin mem_adr = 0; data = 8'b0; fstate = 4; end
+						4: begin adr = mem_adr; fstate = 5; end
+						5: begin 
+								if (mem_adr[15:0] == startf) file_load = 0;
+								else begin ena_wr = 1; mem_adr = mem_adr + 1; fstate = 6; end
+							end
+						6: begin ena_wr = 0;fstate = 4; end
+					endcase
+				end else
+						if (len == count) begin data_valid = 1; fstate = 3; end // no need to wait for data during memory clearing process
 			end
-		2: begin
-				endf[15:8] = fileloader_data;
-				state = 3;
-			end
-		3: begin
-				endf[7:0] = fileloader_data;
-				len <= endf - startf + 1;
-				file_mem_adr = startf;
-				state = 4;
-			end
-		4: begin
-				if (count != 0) file_mem_adr = file_mem_adr + 1;
-				ena_wr = 1;
-				count = count + 1;
-				if (count == len) begin
-					state = 5;
-					file_load <= 0;
-					clear_end = (startf == 0) ? startf : startf -1;
-				end
-			end
-		endcase
-	end	 
-end
-
-reg[15:0] clear_end;
-reg clear_wr = 0;
-reg[20:0] clear_adr;
-reg[2:0] cstate;
-
-always @(posedge clk50) begin
-	if (state == 5) begin
-		case(cstate)
-		0:	begin
-				if (clear_adr[15:0] < clear_end) 
-					cstate = 1;
-				else 
-					cstate = 3;
-			end
-		1: begin 
-				clear_wr = 1; 
-				cstate = 2; 
-			end
-		2: begin	
-				clear_adr = clear_adr + 1;
-				cstate = 0;
-			end
-		3: 	clear_wr = 0;
-		endcase
-	end else begin
-		clear_adr = 0;
-		cstate	= 0;
-		clear_wr = 0;
+		end
 	end
 end
+
 endmodule

@@ -20,6 +20,8 @@
 //
 // Ported to "ZX UNO" by Andy Karpov 
 // https://github.com/andykarpov/rk86-zxuno '2018
+//
+// Ported to "Karabas GO" by Oleh Chastukhin
 
 module radio86rk(
    //---------------------------
