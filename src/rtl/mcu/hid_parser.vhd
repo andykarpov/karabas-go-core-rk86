@@ -18,7 +18,7 @@ entity hid_parser is
 	(
 	 CLK			 : in std_logic;
 	 RESET 		 : in std_logic;
-	 
+	 OSD_ACT		 : in std_logic;
 	 -- incoming usb hid report data
 	 KB_STATUS : in std_logic_vector(7 downto 0);
 	 KB_DAT0 : in std_logic_vector(7 downto 0);
@@ -301,8 +301,23 @@ process (RESET, CLK)
 					when others => null;
 					
 				end case;
-				end loop;
-							
+			   end loop;
+
+				if (OSD_ACT = '0') then
+					if (joy_l(SC_BTN_UP) = '1') then kb_data(RK_K_UP) <= '1'; end if; -- up
+					if (joy_l(SC_BTN_DOWN) = '1') then kb_data(RK_K_DOWN) <= '1'; end if; -- down
+					if (joy_l(SC_BTN_LEFT) = '1') then kb_data(RK_K_LEFT) <= '1'; end if; -- left
+					if (joy_l(SC_BTN_RIGHT) = '1') then kb_data(RK_K_RIGHT) <= '1'; end if; -- right
+					if (joy_l(SC_BTN_B) = '1') then kb_data(RK_K_SPACE) <= '1'; end if; -- fire
+					if (joy_l(SC_BTN_A) = '1') then kb_data(RK_K_ENTER) <= '1'; end if; -- fire
+
+					if (joy_r(SC_BTN_UP) = '1') then kb_data(RK_K_UP) <= '1'; end if; -- up
+					if (joy_r(SC_BTN_DOWN) = '1') then kb_data(RK_K_DOWN) <= '1'; end if; -- down
+					if (joy_r(SC_BTN_LEFT) = '1') then kb_data(RK_K_LEFT) <= '1'; end if; -- left
+					if (joy_r(SC_BTN_RIGHT) = '1') then kb_data(RK_K_RIGHT) <= '1'; end if; -- right
+					if (joy_r(SC_BTN_B) = '1') then kb_data(RK_K_SPACE) <= '1'; end if; -- fire
+					if (joy_r(SC_BTN_A) = '1') then kb_data(RK_K_ENTER) <= '1'; end if; -- fire				
+				end if;
 		end if;
 	end process;
 

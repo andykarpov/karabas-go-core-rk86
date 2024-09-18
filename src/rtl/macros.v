@@ -25,10 +25,10 @@ module macros (
     output  macros_act,
 	 input enable
 );
-    localparam DELAY_1 = 1_000_000;
+    localparam DELAY_1 = 8_000_000;
     localparam DELAY_2 = 5_000_000; 
-    localparam [7:0] SYMBOLS [0:1] = {8'h0A, 8'h28}; 
-    localparam NUM_SYMBOLS = 2; 
+    localparam [7:0] SYMBOLS [0:2] = {8'h2a, 8'h0A, 8'h28}; 
+    localparam NUM_SYMBOLS = 3; 
 
     reg [25:0] counter;
     reg [1:0] symbol_index; 

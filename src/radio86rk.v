@@ -246,6 +246,11 @@ wire[7:0]  load_d;
 wire		  load_wr;
 wire 		  loading;
 
+wire[12:0] joy_l;
+wire[12:0] joy_r;
+
+wire osd_act;
+
 mcu mcu(
 	.CLK(clk50),
 	.N_RESET(~areset),
@@ -263,6 +268,9 @@ mcu mcu(
 	.KB_DAT4(hid_kb_dat4),
 	.KB_DAT5(hid_kb_dat5),
 	 
+	.JOY_L(joy_l),
+	.JOY_R(joy_r),
+	 
 	.ROMLOADER_ACTIVE(loader_act),
 	.ROMLOAD_ADDR(loader_ram_a),
 	.ROMLOAD_DATA(loader_ram_do),
@@ -272,7 +280,6 @@ mcu mcu(
 	.FILELOAD_ADDR(fileloader_addr),
 	.FILELOAD_DATA(fileloader_data),
 	.FILELOAD_WR(fileloader_wr),
-	
 	.SOFTSW_COMMAND(softsw_command),	
 	.OSD_COMMAND(osd_command)
 );
@@ -289,7 +296,8 @@ wire loaded_done;
 hid_parser hid_parser(
 	.CLK(clk50),
 	.RESET(areset),
-
+	.OSD_ACT(osd_act),
+	
 	.KB_STATUS(hid_kb_status),
 	.KB_DAT0((macros_act & loaded_done)? symbol : hid_kb_dat0),
 	.KB_DAT1(hid_kb_dat1),
@@ -501,6 +509,7 @@ overlay overlay(
 	.RGB_O({VGA_R, VGA_G, VGA_B}),
 	.HSYNC_I(VGA_HS),
 	.VSYNC_I(VGA_VS),
+	.OSD_ACT(osd_act),
 	.OSD_COMMAND(osd_command)
 );
 

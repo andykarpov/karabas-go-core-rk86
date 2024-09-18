@@ -73,8 +73,7 @@ always @(posedge clk50 or posedge fileloader_wr) begin
 		fmem_data <= fileloader_data;
 		data_valid <= 1;
 		pulse_counter <= pulse_counter + 1;
-	end 
-	else begin
+	end else begin
 		if (reset) file_load <= 0;
 		else begin
 			//get file loading start

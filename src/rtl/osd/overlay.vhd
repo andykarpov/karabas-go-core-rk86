@@ -11,6 +11,7 @@ entity overlay is
 		RGB_O 	: out std_logic_vector(23 downto 0);
 		HSYNC_I 	: in std_logic;
 		VSYNC_I 	: in std_logic;
+		OSD_ACT	: out std_logic;
 		OSD_COMMAND 	: in std_logic_vector(15 downto 0)
 	);
 end entity;
@@ -248,7 +249,7 @@ begin
 				 if (osd_command /= last_osd_command) then 
 					last_osd_command <= osd_command;
 					case osd_command(15 downto 8) is 
-					  when x"01" => vram_wr <= "0"; osd_overlay <= osd_command(0); -- osd
+					  when x"01" => vram_wr <= "0"; osd_overlay <= osd_command(0); OSD_ACT <= osd_command(0);  -- osd
 					  when x"02" => vram_wr <= "0"; osd_popup <= osd_command(0); -- popup						
 					  when X"10"  => vram_wr <= "0"; addr_write(4 downto 0) <= osd_command(4 downto 0); -- x: 0...32
 					  when X"11" => vram_wr <= "0"; addr_write(9 downto 5) <= osd_command(4 downto 0); -- y: 0...32
