@@ -33,7 +33,7 @@ entity hid_parser is
 	 JOY_TYPE_R : in std_logic_vector(2 downto 0);
 	 JOY_L : in std_logic_vector(12 downto 0);
 	 JOY_R : in std_logic_vector(12 downto 0);
-
+	 JOY_RST : out std_logic;
 	 -- cpu address for spectrum keyboard row address
 	 A : in std_logic_vector(7 downto 0);
 	 
@@ -318,6 +318,12 @@ process (RESET, CLK)
 					if (joy_r(SC_BTN_B) = '1') then kb_data(RK_K_SPACE) <= '1'; end if; -- fire
 					if (joy_r(SC_BTN_A) = '1') then kb_data(RK_K_ENTER) <= '1'; end if; -- fire				
 				end if;
+					if (joy_l(SC_BTN_X) = '1' and joy_l(SC_BTN_Z) = '1') or
+						(joy_r(SC_BTN_X) = '1' and joy_r(SC_BTN_Z) = '1') then 
+							JOY_RST <= '1'; 
+					else
+							JOY_RST <= '0';
+					end if;
 		end if;
 	end process;
 

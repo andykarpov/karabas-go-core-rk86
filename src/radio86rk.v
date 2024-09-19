@@ -248,7 +248,7 @@ wire 		  loading;
 
 wire[12:0] joy_l;
 wire[12:0] joy_r;
-
+wire joy_rst;
 wire osd_act;
 
 mcu mcu(
@@ -310,6 +310,7 @@ hid_parser hid_parser(
 	.JOY_TYPE_R(kb_joy_type_r),
 	.JOY_L(joy_l),
 	.JOY_R(joy_r),
+	.JOY_RST(joy_rst),
 	
 	.KB_TYPE(1'b1),
 	.A (ppa1_a),	
@@ -346,7 +347,7 @@ reg reset_n;
 wire reset = ~reset_n | loading;
 
 always @(posedge clk50) begin
-   if (!(cpurst) && reset_cnt==4'd14)
+   if (!(cpurst | joy_rst) && reset_cnt==4'd14)
       reset_n <= 1'b1;
    else begin
       reset_n <= 1'b0;
@@ -376,7 +377,7 @@ always @(*) begin
 end
 
 //--------- LOADER -----------------
-loader loader(.reset(cpurst),.clk50(clk50),.loader_act(loader_act),.loader_ram_a(loader_ram_a),
+loader loader(.reset((cpurst | joy_rst)),.clk50(clk50),.loader_act(loader_act),.loader_ram_a(loader_ram_a),
 				  .loader_ram_do(loader_ram_do),.loader_ram_wr(loader_ram_wr),
 				  .fileloader_reset(fileloader_reset),.fileloader_addr(fileloader_addr),
 				  .fileloader_data(fileloader_data),.fileloader_wr(fileloader_wr),
