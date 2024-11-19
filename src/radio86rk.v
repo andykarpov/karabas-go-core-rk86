@@ -460,15 +460,35 @@ k580wt57 dma(.clk(clk50), .ce(vid_cce), .reset(reset),
    .hlda(hlda), .hrq(hlda), .dack(dma_dack), .odata(dma_o), .oaddr(vid_addr),
    .owe_n(dma_owe_n), .ord_n(dma_ord_n), .oiowe_n(dma_oiowe_n), .oiord_n(dma_oiord_n) );
 
+wire vid_vr, vid_hr;
+
 k580wg75 crt(.clk(clk50), .ce(vid_cce),
    .iaddr(addrbus[0]), .idata(cpu_o), .iwe_n(crt_we_n), .ird_n(crt_rd_n),
-   .vrtc(VGA_VS), .hrtc(VGA_HS), .dack(dma_dack[2]), .ichar(mem_o), .drq(vid_drq), .irq(vid_irq),
+   .vrtc(vid_vr), .hrtc(vid_hr), .dack(dma_dack[2]), .ichar(mem_o), .drq(vid_drq), .irq(vid_irq),
    .odata(crt_o), .line(vid_line), .ochar(vid_char), .lten(vid_lten), .vsp(vid_vsp),
    .rvv(vid_rvv), .hilight(vid_hilight), .lattr(vid_lattr), .gattr(vid_gattr) );
 
-rk_video vid(.clk50mhz(clk50), .hr(VGA_HS), .vr(VGA_VS), .cce(vid_cce),
-   .r(video_r), .g(video_g), .b(video_b), .line(vid_line), .ichar(vid_char),
-   .vsp(vid_vsp), .lten(vid_lten), .rvv(vid_rvv), .videomode(videomode) );
+wire vid_pix;
+	
+rk_video vid(
+	.clk(clk50), 
+	.hr(VGA_HS), 
+	.vr(VGA_VS), 
+   .hr_wg75(vid_hr), 
+	.vr_wg75(vid_vr),
+	.cce(vid_cce),
+	.pixel(vid_pix),
+   .blank(), 
+	.line(vid_line), 
+	.ichar(vid_char),
+   .vsp(vid_vsp), 
+	.lten(vid_lten), 
+	.rvv(vid_rvv)
+);
+
+assign video_r = vid_pix ? (videomode ? 8'b00100000 : 8'b10000000 ) : 8'b00000000;
+assign video_g = vid_pix ? (videomode ? 8'b10000000 : 8'b10000000 ) : 8'b00000000;
+assign video_b = vid_pix ? (videomode ? 8'b00100000 : 8'b10000000 ) : 8'b00000000;
 
 //--------- SYS PPA --------------
 k580ww55 ppa1(.clk(clk50), .reset(reset), .addr(addrbus[1:0]), .we_n(ppa1_we_n),
@@ -505,7 +525,7 @@ end
 
 overlay overlay(
 	.CLK(clk50),
-	.CLK_VGA(clk25),
+	.CLK_VGA(clk50),
 	.RGB_I({video_r[7:0], video_g[7:0], video_b[7:0]}),
 	.RGB_O({VGA_R, VGA_G, VGA_B}),
 	.HSYNC_I(VGA_HS),
