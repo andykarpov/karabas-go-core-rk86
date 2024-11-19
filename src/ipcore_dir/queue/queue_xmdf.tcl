@@ -115,11 +115,11 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simula
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/functional/simulate_ncsim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/functional/simulate_ncsim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/functional/simulate_vcs.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/functional/simulate_vcs.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
@@ -191,11 +191,11 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simula
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/timing/simulate_ncsim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/timing/simulate_ncsim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/timing/simulate_vcs.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path queue/simulation/timing/simulate_vcs.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 

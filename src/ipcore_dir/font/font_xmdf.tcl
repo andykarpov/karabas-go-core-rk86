@@ -115,7 +115,7 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path font/simulat
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path font/simulation/functional/simulate_isim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path font/simulation/functional/simulate_isim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
@@ -163,7 +163,7 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path font/simulat
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path font/simulation/timing/simulate_isim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path font/simulation/timing/simulate_isim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 

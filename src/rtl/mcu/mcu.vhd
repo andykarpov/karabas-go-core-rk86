@@ -116,7 +116,12 @@ architecture rtl of mcu is
 	constant CMD_FILEBANK   : std_logic_vector(7 downto 0) := x"0C";
 	constant CMD_FILEDATA   : std_logic_vector(7 downto 0) := x"0D";
 	constant CMD_FILELOADER : std_logic_vector(7 downto 0) := x"0E";
-	-- 11, 12 - usb gamepad, joy : todo
+	
+	constant CMD_IOCTL_SLOT : std_logic_vector(7 downto 0) := x"50";
+	constant CMD_IOCTL_SIZE : std_logic_vector(7 downto 0) := x"51";
+	constant CMD_IOCTL_BANK : std_logic_vector(7 downto 0) := x"52";
+	constant CMD_IOCTL_DATA : std_logic_vector(7 downto 0) := x"53";
+	constant CMD_IOCTL_EXT  : std_logic_vector(7 downto 0) := x"54";
 
 	constant CMD_OSD 			: std_logic_vector(7 downto 0) := x"20";
 	constant CMD_RTC 			: std_logic_vector(7 downto 0) := x"FA";
@@ -234,6 +239,9 @@ begin
 	process (CLK, spi_do_valid, spi_do)
 	begin
 		if (rising_edge(CLK)) then
+		
+			FILELOAD_RESET <= '0';
+		
 			if spi_do_valid = '1' then
 				case spi_do(23 downto 16) is 
 					-- keyboard
@@ -320,8 +328,8 @@ begin
 					when CMD_ROMLOADER =>
 						ROMLOADER_ACTIVE <= spi_do(0);
 						
-					-- filebank
-					when CMD_FILEBANK => 
+					-- ioctl bank
+					when CMD_IOCTL_BANK => 
 						case spi_do(15 downto 8) is
 							when x"00" => tmp_fileload_addr(15 downto 8) <= spi_do(7 downto 0);
 							when x"01" => tmp_fileload_addr(23 downto 16) <= spi_do(7 downto 0);
@@ -329,15 +337,14 @@ begin
 							when others => null;
 						end case;
 						
-					-- filedata
-					when CMD_FILEDATA => 
+					-- ioctl data
+					when CMD_IOCTL_DATA => 
 						FILELOAD_ADDR(31 downto 8) <= tmp_fileload_addr(31 downto 8);
 						FILELOAD_ADDR(7 downto 0) <= spi_do(15 downto 8);
 						FILELOAD_DATA(7 downto 0) <= spi_do(7 downto 0);
 						
-					when CMD_FILELOADER =>
-						FILELOAD_RESET <= spi_do(0);	
-					
+					when CMD_IOCTL_SLOT =>
+						FILELOAD_RESET <= '1';	
 							
 					-- rtc 
 					when CMD_RTC =>						

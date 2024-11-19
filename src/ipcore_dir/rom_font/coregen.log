@@ -16,12 +16,12 @@ Running ngcbuild...
 Writing VEO instantiation template for 'rom_font'...
 Writing Verilog behavioral simulation model for 'rom_font'...
 WARNING:sim - Overwriting existing file
-   /home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_
-   cg/rom_font/doc/blk_mem_gen_v7_3_vinfo.html with file from view
-   xilinx_documentation
+   /home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-cor
+   e-rk86/src/ipcore_dir/rom_font/tmp/_cg/rom_font/doc/blk_mem_gen_v7_3_vinfo.ht
+   ml with file from view xilinx_documentation
 Delivered 1 file into directory
-/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg/
-rom_font
+/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-r
+k86/src/ipcore_dir/rom_font/tmp/_cg/rom_font
 Generating ASY schematic symbol...
 INFO:sim:949 - Finished generation of ASY schematic symbol.
 Generating SYM schematic symbol for 'rom_font'...
@@ -31,30 +31,31 @@ Generating ISE project...
 XCO file found: rom_font.xco
 XMDF file found: rom_font_xmdf.tcl
 Adding
-/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg/
-rom_font.asy -view all -origin_type imported
+/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-r
+k86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.asy -view all -origin_type imported
 Adding
-/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg/
-rom_font.ngc -view all -origin_type created
+/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-r
+k86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.ngc -view all -origin_type created
 Checking file
-"/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg
-/rom_font.ngc" for project device match ...
+"/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-
+rk86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.ngc" for project device match ...
 File
-"/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg
-/rom_font.ngc" device information matches project device.
+"/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-
+rk86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.ngc" device information matches
+project device.
 Adding
-/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg/
-rom_font.sym -view all -origin_type imported
+/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-r
+k86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.sym -view all -origin_type imported
 Adding
-/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg/
-rom_font.v -view all -origin_type created
+/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-r
+k86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.v -view all -origin_type created
 INFO:HDLCompiler:1845 - Analyzing Verilog file
-   "/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/
-   _cg/rom_font.v" into library work
+   "/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-co
+   re-rk86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.v" into library work
 INFO:ProjectMgmt - Parsing design hierarchy completed successfully.
 Adding
-/home/ol/prj/zx/karabas_go/karabas-go-core-rk86/src/ipcore_dir/rom_font/tmp/_cg/
-rom_font.veo -view all -origin_type imported
+/home/andy/Documents/Projects/Retrocomp/ZX-Spectrum/karabas-go/karabas-go-core-r
+k86/src/ipcore_dir/rom_font/tmp/_cg/rom_font.veo -view all -origin_type imported
 INFO:TclTasksC:2116 - The automatic calculation of top has been turned-off.
    Please set the new top explicitly by running the "project set top" command.
    To re-calculate the new top automatically, set the "Auto Implementation Top"

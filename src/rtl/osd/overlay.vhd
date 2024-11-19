@@ -11,7 +11,7 @@ entity overlay is
 		RGB_O 	: out std_logic_vector(23 downto 0);
 		HSYNC_I 	: in std_logic;
 		VSYNC_I 	: in std_logic;
-		OSD_ACT	: out std_logic;
+		OSD_ACT : out std_logic;
 		OSD_COMMAND 	: in std_logic_vector(15 downto 0)
 	);
 end entity;
@@ -77,8 +77,8 @@ architecture rtl of overlay is
 	 
 	 signal flash_cnt : std_logic_vector(7 downto 0);
 	 
-	 constant h_offset : natural := 48; --120;
-	 constant v_offset : natural := 32; --72;	 
+	 constant h_offset : natural := 180;
+	 constant v_offset : natural := 64;	 
 begin
 
 	hsync_pol <= '1';
@@ -86,6 +86,8 @@ begin
 	
 	hsync <= HSYNC_I;
 	vsync <= VSYNC_I;
+	
+	OSD_ACT <= osd_overlay;
 	
 	-- hcnt, vcnt, width, height
 	process(CLK_VGA)
@@ -112,7 +114,7 @@ begin
 
 	-- normalize h/v values
 	hcnt <= hcnt_i(10 downto 0) - h_offset when width < 500 else 
-			  '0' & hcnt_i(10 downto 1) - h_offset when width < 1000 else 
+			  '0' & hcnt_i(10 downto 1) - h_offset when width < 1200 else 
 			  "00" & hcnt_i(10 downto 2) - h_offset;
 
 	vcnt <= vcnt_i(10 downto 0) - v_offset when height < 400 else 
@@ -249,7 +251,7 @@ begin
 				 if (osd_command /= last_osd_command) then 
 					last_osd_command <= osd_command;
 					case osd_command(15 downto 8) is 
-					  when x"01" => vram_wr <= "0"; osd_overlay <= osd_command(0); OSD_ACT <= osd_command(0);  -- osd
+					  when x"01" => vram_wr <= "0"; osd_overlay <= osd_command(0); -- osd
 					  when x"02" => vram_wr <= "0"; osd_popup <= osd_command(0); -- popup						
 					  when X"10"  => vram_wr <= "0"; addr_write(4 downto 0) <= osd_command(4 downto 0); -- x: 0...32
 					  when X"11" => vram_wr <= "0"; addr_write(9 downto 5) <= osd_command(4 downto 0); -- y: 0...32

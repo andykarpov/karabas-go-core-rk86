@@ -115,7 +115,7 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path osd_vram/sim
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path osd_vram/simulation/functional/simulate_isim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path osd_vram/simulation/functional/simulate_isim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
@@ -171,7 +171,7 @@ utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path osd_vram/sim
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
-utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path osd_vram/simulation/timing/simulate_isim.bat
+utilities_xmdf::xmdfSetData $instance FileSet $fcount relative_path osd_vram/simulation/timing/simulate_isim.sh
 utilities_xmdf::xmdfSetData $instance FileSet $fcount type Ignore
 incr fcount
 
