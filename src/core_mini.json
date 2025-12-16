@@ -1,7 +1,7 @@
 {
     "id": "rk86",
     "name": "Radio-86RK",
-    "build": "24111902",
+    "build": "25121601",
     "bitstream": "radio86rk_mini.bin",
     "visible": true,
     "type": "osd",
