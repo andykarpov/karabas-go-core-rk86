@@ -137,12 +137,11 @@ hvsync_generator vgasync(
 	.clk(clk),
 	.vga_h_sync(hr),
 	.vga_v_sync(vr),
+	.vga_blank(blank),
 	.inDisplayArea(inDisplay),
 	.CounterX(CounterX),
 	.CounterY(CounterY)
 );
-
-assign blank = ~inDisplay;
 
 // vga signal generator
 

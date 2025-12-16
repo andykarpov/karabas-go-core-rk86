@@ -572,7 +572,7 @@ wire [9:0] tmds_red, tmds_green, tmds_blue;
 hdmi hdmi(
 	.I_CLK_PIXEL(clk50),
 	.I_RESET(areset),
-	.I_FREQ(50),
+	.I_FREQ(40),
 	.I_R(host_video_r),
 	.I_G(host_video_g),
 	.I_B(host_video_b),
