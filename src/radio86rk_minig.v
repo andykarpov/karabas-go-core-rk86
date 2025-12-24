@@ -556,7 +556,7 @@ assign audio_mix_l = audio_out_l[15:0] + adc_l[23:8];
 assign audio_mix_r = audio_out_r[15:0] + adc_r[23:8];
 
 //------- DAC ---------
-PCM5102 PCM5102(
+PCM5102 #(.DAC_CLK_DIV_BITS(3)) PCM5102(
 	.clk(clk50),
 	.left(audio_out_l),
 	.right(audio_out_r),
