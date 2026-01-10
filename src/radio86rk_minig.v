@@ -231,6 +231,7 @@ wire joy_rst;
 wire osd_act;
 
 wire [24:0] audio_mix_l, audio_mix_r;
+wire dvi_only;
 
 mcu mcu(
 	.CLK(clk50),
@@ -261,6 +262,9 @@ mcu mcu(
 	.FILELOAD_ADDR(fileloader_addr),
 	.FILELOAD_DATA(fileloader_data),
 	.FILELOAD_WR(fileloader_wr),
+	
+	.HWID(),
+	.DVI_ONLY(dvi_only),	
 	
 	.SOFTSW_COMMAND(softsw_command),	
 	.OSD_COMMAND(osd_command)
@@ -587,13 +591,27 @@ hdmi hdmi(
 	.O_BLUE(tmds_blue)
 );
 
+wire [9:0] dvi_red, dvi_green, dvi_blue;
+
+dvi dvi(
+	.CLK(clk50),
+	.RESET(areset),
+	.RGB({host_video_r, host_video_g, host_video_b}),
+	.HSYNC(host_video_hs),
+	.VSYNC(host_video_vs),
+	.DE(~host_video_blank),
+	.ENC_RED(dvi_red),
+	.ENC_GREEN(dvi_green),
+	.ENC_BLUE(dvi_blue)
+);
+
 hdmi_out_xilinx hdmiio(
 	.clock_pixel_i(clk50),
 	.clock_tdms_i(clk_hdmi),
 	.clock_tdms_n_i(clk_hdmi_n),
-	.red_i(tmds_red),
-	.green_i(tmds_green),
-	.blue_i(tmds_blue),
+	.red_i(dvi_only ? dvi_red : tmds_red),
+	.green_i(dvi_only ? dvi_green : tmds_green),
+	.blue_i(dvi_only ? dvi_blue : tmds_blue),
 	.tmds_out_p(TMDS_P),
 	.tmds_out_n(TMDS_N)
 );
