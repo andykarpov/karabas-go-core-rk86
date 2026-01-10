@@ -213,19 +213,6 @@ pllx5 pllx5 (
 	.CLK_OUT2(clk_hdmi_n)
 );
 
-
-// pixel clock
-ODDR2 ODDR2_inst (
-	.Q(V_CLK),
-	.C0(clk50),
-	.C1(~clk50),
-	.CE(1'b1),
-	.D0(1'b1),
-	.D1(1'b0),
-	.R(1'b0),
-	.S(1'b0)
-);
-
 ODDR2 ODDR2_inst1 (  //clock for midi to avoid random noises 
 	.Q(MIDI_CLK),
 	.C0(clk12),
@@ -552,39 +539,17 @@ overlay overlay(
 	.OSD_COMMAND(osd_command)
 );
 
-// ------- PCM1808 ADC ---------
+// ------- PCM1808 ADC disabled ---------
 wire signed [23:0] adc_l, adc_r;
+assign ADC_CLK = 1'b0;
+assign ADC_BCK = 1'b0;
+assign ADC_LRCK = 1'b0;
 
-i2s_transceiver adc(
-	.reset_n(~areset),
-	.mclk(clk25),
-	.sclk(ADC_BCK),
-	.ws(ADC_LRCK),
-	.sd_tx(),
-	.sd_rx(ADC_DOUT),
-	.l_data_tx(24'b0),
-	.r_data_tx(24'b0),
-	.l_data_rx(adc_l),
-	.r_data_rx(adc_r)
-);
-
-// ------- ADC_CLK output buf
-ODDR2 oddr_adc2(
-	.Q(ADC_CLK),
-	.C0(clk25),
-	.C1(~clk25),
-	.CE(1'b1),
-	.D0(1'b1),
-	.D1(1'b0),
-	.R(1'b0),
-	.S(1'b0)
-);
-
-// ------- audio mix host + adc
+// ------- audio mix host
 assign audio_out_l = {2'b00, (ppa1_c[0]^inte)&sound, 13'd0};
 assign audio_out_r = {2'b00, (ppa1_c[0]^inte)&sound, 13'd0};
-assign audio_mix_l = audio_out_l[15:0] + adc_l[23:8];
-assign audio_mix_r = audio_out_r[15:0] + adc_r[23:8];
+assign audio_mix_l = audio_out_l[15:0];
+assign audio_mix_r = audio_out_r[15:0];
 
 //------- Sigma-Delta DAC ---------
 dac dac_l(
