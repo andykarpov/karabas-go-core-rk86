@@ -112,7 +112,7 @@ module radio86rk(
 	input wire MCU_SCK,
 	inout wire MCU_MOSI,
 	output wire MCU_MISO,
-	input wire [3:0] MCU_IO,
+	inout wire [3:0] MCU_IO, // [0] burst ready (N9), [1] burst cs_n (M11)
 	
 	//---------------------------
 	output wire MIDI_TX,
@@ -251,6 +251,11 @@ wire[12:0] joy_r;
 wire joy_rst;
 wire osd_act;
 
+// burst transfers from the mcu (karabas-go-firmware docs/burst_protocol.md)
+wire mcu_burst_ready;
+assign MCU_IO[0] = mcu_burst_ready;
+assign MCU_IO[3:1] = 3'bzzz;
+
 mcu mcu(
 	.CLK(clk50),
 	.N_RESET(~areset),
@@ -259,6 +264,9 @@ mcu mcu(
 	.MCU_MISO(MCU_MISO),
 	.MCU_SCK(MCU_SCK),
 	.MCU_SS(MCU_CS_N),
+	// burst transfers: firmware IO0 (GPIO14) = MCU_IO[1] (M11), IO1 (GPIO2) = MCU_IO[0] (N9)
+	.MCU_BURST_CS_N(MCU_IO[1]),
+	.MCU_BURST_READY(mcu_burst_ready),
 
 	.KB_STATUS(hid_kb_status),
 	.KB_DAT0(hid_kb_dat0),

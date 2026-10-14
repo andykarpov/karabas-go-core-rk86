@@ -9,6 +9,11 @@ use IEEE.numeric_std.all;
 use IEEE.std_logic_unsigned.all;
 
 entity mcu is
+	generic (
+		-- highest burst SCK announced to the mcu in the CMD_CAPS answer, MHz (0 = normal link
+		-- clock, 16 MHz). Raise it only on boards where bursts were verified at that clock.
+		BURST_MAX_MHZ : integer := 0
+	);
 	port
 	(
 	 CLK			 : in std_logic;
@@ -21,6 +26,10 @@ entity mcu is
 	 MCU_SS 		 : in std_logic;
 	 MCU_SPI_FT_SS 		 : in std_logic;
 	 MCU_SPI_SD2_SS 		 : in std_logic;	 
+
+	 -- burst transfers (karabas-go-firmware docs/burst_protocol.md)
+	 MCU_BURST_CS_N  : in std_logic := '1';
+	 MCU_BURST_READY : out std_logic := '1';
 
 	 -- usb mouse
 	 MS_X 	 	: out std_logic_vector(7 downto 0) := "00000000";
@@ -39,8 +48,8 @@ entity mcu is
 	 KB_DAT5   : out std_logic_vector(7 downto 0) := "00000000";
 
 	 -- joysticks
-	 JOY_L			: out std_logic_vector(12 downto 0) := "000000000000";
-	 JOY_R			: out std_logic_vector(12 downto 0) := "000000000000";
+	 JOY_L			: out std_logic_vector(12 downto 0) := (others => '0');
+	 JOY_R			: out std_logic_vector(12 downto 0) := (others => '0');
 
     -- rtc	 
 	 RTC_A 		: in std_logic_vector(7 downto 0);
@@ -128,6 +137,7 @@ architecture rtl of mcu is
 	constant CMD_IOCTL_EXT  : std_logic_vector(7 downto 0) := x"54";
 
 	constant CMD_OSD 			: std_logic_vector(7 downto 0) := x"20";
+	constant CMD_CAPS		: std_logic_vector(7 downto 0) := x"F7";
 	constant CMD_HW_SETUP	: std_logic_vector(7 downto 0) := x"F9";
 	constant CMD_RTC 			: std_logic_vector(7 downto 0) := x"FA";
 	constant CMD_FLASHBOOT  : std_logic_vector(7 downto 0) := x"FB";
@@ -180,6 +190,20 @@ architecture rtl of mcu is
 	--state machine for queue writes
 	type qmachine IS(idle, rtc_wr_req, rtc_wr_ack);
 	signal qstate : qmachine := idle;
+
+	-- capabilities answered to the CMD_CAPS query:
+	-- bit 0 = burst write, bit 1 = MCU_BURST_READY is driven; max burst SCK from BURST_MAX_MHZ
+	constant CAPS           : std_logic_vector(7 downto 0) := x"03";
+	constant CAPS_MAX_MHZ   : std_logic_vector(7 downto 0) := std_logic_vector(to_unsigned(BURST_MAX_MHZ, 8));
+	signal caps_req         : std_logic := '0';
+	signal caps_ack         : std_logic := '0';
+	signal caps_prev_valid  : std_logic := '0'; -- spi_do_valid can last more than one clock
+
+	-- burst receiver
+	signal burst_type       : std_logic_vector(7 downto 0);
+	signal burst_addr       : std_logic_vector(31 downto 0);
+	signal burst_data       : std_logic_vector(7 downto 0);
+	signal burst_wr         : std_logic;
 	
 begin
 	
@@ -213,6 +237,29 @@ begin
 	);
 
 	spi_di <= queue_do; -- when queue_rd_empty = '0' else x"FFFFFF";
+
+	--------------------------------------------------------------------------
+	-- MCU burst transfers (second chip select, see docs/burst_protocol.md)
+	--------------------------------------------------------------------------
+
+	U_BURST: entity work.burst_rx
+	port map(
+		CLK      => CLK,
+		SCK      => MCU_SCK,
+		MOSI     => MCU_MOSI,
+		CS_N     => MCU_BURST_CS_N,
+		TYPE_O   => burst_type,
+		ADDR_O   => burst_addr,
+		DATA_O   => burst_data,
+		WR_O     => burst_wr,
+		ACTIVE_O => open
+	);
+
+	-- a burst byte arrives every 250 ns at most (32 MHz SCK). The rom loader writes a byte to
+	-- SRAM in one clock and the file loader (loader.v) takes 3 clocks per byte, so a whole
+	-- burst can always be accepted. A core with a slower consumer puts a fifo here and drops
+	-- READY while it has less than 512 bytes free.
+	MCU_BURST_READY <= '1';
 --	queue_rd_req <= spi_di_req;
 	
 	MCU_MISO <= 
@@ -381,11 +428,30 @@ begin
 								FT_SPI_ON <= spi_do(0);
 								FT_VGA_ON <= spi_do(1);
 
+					-- capability query: answer through the queue to the mcu
+					when CMD_CAPS =>
+						if spi_do(15 downto 8) = x"00" and caps_prev_valid = '0' then
+							caps_req <= not caps_req;
+						end if;
+
 					-- nope
 					when CMD_NOPE => null;
 					
 					when others => null;
 				end case;
+			end if;
+			caps_prev_valid <= spi_do_valid;
+
+			-- burst data: the same loader signals as the classic bank + data commands
+			-- (the write strobes follow the address change below)
+			if burst_wr = '1' then
+				if burst_type = CMD_ROMDATA then
+					ROMLOAD_ADDR <= burst_addr;
+					ROMLOAD_DATA <= burst_data;
+				elsif burst_type = CMD_IOCTL_DATA then
+					FILELOAD_ADDR <= burst_addr;
+					FILELOAD_DATA <= burst_data;
+				end if;
 			end if;
 		end if;
 	end process;
@@ -461,7 +527,11 @@ begin
 	begin
 		if rising_edge(CLK) then
 			queue_wr_req <= '0';
-			if UART_TX_WR = '1' then -- send UART byte
+			if caps_req /= caps_ack then -- answer the capability query
+				queue_wr_req <= '1';
+				queue_di <= CMD_CAPS & CAPS & CAPS_MAX_MHZ;
+				caps_ack <= caps_req;
+			elsif UART_TX_WR = '1' then -- send UART byte
 				queue_wr_req <= '1';
 				if (UART_TX_MODE = '1') then
 					queue_di <= CMD_UART & "00000011" & UART_TX_DATA;
