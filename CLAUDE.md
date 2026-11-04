@@ -12,16 +12,18 @@ The core is not converted to karabas-go-modules: it has no `modules/` submodule 
 
 - `src/radio86rk.v` (Go, VGA), `src/radio86rk_mini.v`, `src/radio86rk_minig.v` (HDMI, `src/rtl/hdmi`, PCM5102 DAC): the three tops, each a whole machine (CPU, memory map, ROM select, the loaders, OSD, the board glue).
 - `src/rtl`: `k580wm80a.v` (CPU), `k580wt57.v` (DMA), `k580wg75.v` (CRT), `k580ww55.v` (PPI), `rk_video.v`, `rk_kbd.v`, `loader.v` (writes the ROMs and the tape image into the memory), `macros.v` (types the keys that start a loaded tape image), `mcu/` (`mcu.vhd`, `burst_rx.vhd`, `soft_switches.vhd`, `hid_parser.vhd`, `usb_ps2_lut.vhd`), `osd/`, `spi/`, `video/`, `dac/`, `adc/`.
-- `src/ipcore_dir`: Coregen cores (`pll`, `pllx5`, `queue`, `rambuffer`, `font`, `osd_vram`, ...). `src/roms`: `BIOS.BIN`, `BIOSSD.BIN`, `FONT.BIN` with their `.coe`.
+- `src/ipcore`: the inputs of the Coregen cores (`<core>.xco` + `coregen.cgp`: `pll`, `pllx5`, `queue`, `rambuffer`, `font`, `osd_vram`, `rom_font`); the generated cores go to `src/ipcore_dir` (ignored). COE paths in the `.xco` are relative to the `.xco`. `src/roms`: `BIOS.BIN`, `BIOSSD.BIN`, `FONT.BIN` with their `.coe`.
 - `pk/`: a set of tape images (`.RKR`, `.GAM`) for the SD card. `readme.txt`: the keys (older `WIN+` names; the json uses `Menu+`).
 - `src/sim`: `run_burst_sim.sh` (ISim, `tb_mcu_burst.vhd`: the link with bursts at 16 and 32 MHz; `queue_sim.vhd` is a behavioural model of the Coregen fifo).
 
 ## Build
 
-- ISE GUI projects in `src/`: `Radio-86RK.xise` (Go, top `radio86rk`, `pins.ucf`), `Radio-86RK-mini.xise` (`radio86rk_mini`, `pins_mini.ucf`), `Radio-86RK-minig.xise` (`radio86rk_minig`, `pins_minig.ucf`). `Radio-86RK.tcl` is the exported ISE project script of the Go. There is no Makefile and no build script.
-- The bitstreams are `src/radio86rk.bin`, `radio86rk_mini.bin`, `radio86rk_minig.bin` (committed). The ISE outputs land in `src/` next to the sources; `.gitignore` covers most of them.
+- Board configuration in `src/`: `radio86rk.prj` / `.xst` / `.ut` (Go, `pins.ucf`), `radio86rk_mini.*` (`pins_mini.ucf`), `radio86rk_minig.*` (`pins_minig.ucf`): the source list (paths relative to `src/`), the XST and the BitGen options; MAP / PAR options in `src/Makefile`. No `.xise` projects.
+- `bash tools/ise/guest/build.sh go|mini|minig` builds one board from scratch in the ISE 14.7 VM, in a clone or in a host checkout on a shared folder: it removes `build/ise/<board>` and runs `make <board>` in `src/` (Coregen cores from `src/ipcore` via `regen_cores.sh`, XST, NGDBuild, MAP, PAR, TRCE, BitGen, copy to `src/<top>.bin`). `make -C src <board>-xst|-report|...` runs the build up to that step (the earlier steps that are out of date run too). `tools/ise/README.md`: VM, shared folder, license, reference hashes.
+- The tools run in `build/ise/<board>` (the working directory of the tools): the ISE outputs land there, logs in `build/logs/<board>`; `build/` is ignored. `.gitignore` lists folders only.
+- The bitstreams are `src/radio86rk.bin`, `radio86rk_mini.bin`, `radio86rk_minig.bin` (committed); a build that changes one leaves it modified for the commit.
 - `src/make_core.py` is a symlink to `../../karabas-go-tools/make_core/make_core.py` (the tools repo checked out next to this one). It packs `src/core.json` (one file for all boards: the common keys, `boards` for what differs; kgo2, karabas-go-tools `docs/kgo2.md`) with the `.bin` and the ROMs into `src/radio86rk.kg` (`make_core.py core.json radio86rk.kg`, or `--boards <board>` for one board's bitstream), the release file.
-- Each release commit is per board: the `.bin`, the `.xise`, the `build` of the json and the root `.kg*` together.
+- Each release commit is per board: the `.bin`, the `build` of the json and the root `.kg*` together.
 
 ## MCU link and core file
 
